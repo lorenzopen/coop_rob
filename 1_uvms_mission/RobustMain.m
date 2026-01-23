@@ -17,8 +17,10 @@ unity = UnityInterface("127.0.0.1");
 
 % Define tasks
 task_tool = TaskTool();
+task_hor_attitude = TaskHorizontalAttitude();
+
+%da cambiare 
 task_vehicle_pos = TaskVehiclePosition();
-task_hor_attitude = TaskHorAttitude();
 task_vehicle_alt = TaskVehicleAltitude();
 task_vehicle_land = TaskVehicleLand();
 task_vehicle_heading = TaskVehicleHeading();
