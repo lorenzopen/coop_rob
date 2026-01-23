@@ -22,7 +22,7 @@ classdef UvmsModel < handle
         eta         % [6x1] vehicle pose [x y z r p y]
         v_nu        % [6x1] vehicle velocites (linear and angular) proj. on the vehicle frame
         altitude
-        theta_error % heading error
+        err_angle % heading error
 
         %% --- Geometry ---
         vTb         % fixed transform from vehicle to manipulator base

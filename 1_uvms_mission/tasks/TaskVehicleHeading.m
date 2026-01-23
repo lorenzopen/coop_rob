@@ -32,7 +32,7 @@ classdef TaskVehicleHeading < Task
             obj.xdotbar = 0.4 * theta * n;
             obj.xdotbar = Saturate(obj.xdotbar, 0.3);
 
-            robot.theta_error = theta;  % store heading error in robot model
+            robot.err_angle = theta;  % store heading error in robot model
         end
 
         function updateJacobian(obj, robot)
@@ -42,10 +42,10 @@ classdef TaskVehicleHeading < Task
 
         function updateActivation(obj, robot)
             % Inequality task
-            if isempty(robot.theta_error)
+            if isempty(robot.err_angle)
                 theta = 0;
             else
-                theta = robot.theta_error;
+                theta = robot.err_angle;
             end            
             obj.A = IncreasingBellShapedFunction(0.05, 0.15, zeros(3,1), eye(3), theta);
         end

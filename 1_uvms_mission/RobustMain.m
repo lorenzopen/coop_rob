@@ -18,15 +18,13 @@ unity = UnityInterface("127.0.0.1");
 % Define tasks
 task_tool = TaskTool();
 task_hor_attitude = TaskHorizontalAttitude();
-
-%da cambiare 
-task_vehicle_pos = TaskVehiclePosition();
-task_vehicle_alt = TaskVehicleAltitude();
-task_vehicle_land = TaskVehicleLand();
-task_vehicle_heading = TaskVehicleHeading();
+task_vehicle_alt = TaskAltitude();
+task_vehicle_pos = TaskPosition();
+task_vehicle_ori = TaskOrientation();
+task_vehicle_heading = TaskAlign();
+task_vehicle_land = TaskLand();
 task_stop_vehicle = TaskStopVehicle();
 
-task_vehicle_ori = TaskOrient();
 
 task_set1 = { task_vehicle_alt, task_vehicle_ori, task_vehicle_pos };   % Safe Navigation
 task_set2 = { task_hor_attitude, task_vehicle_heading, task_vehicle_land, task_vehicle_pos };  % Landing
@@ -69,6 +67,14 @@ missionPhase = 1;
 manFlag = false; % manipulation complete flag for logging
 goalReset = false;
 
+
+%---------------------------------------------------------------------
+%---------------------------------------------------------------------
+% da cambiare come fare workspace check del braccio, cosi troppo specifico
+%---------------------------------------------------------------------
+%---------------------------------------------------------------------
+
+
 % compute arm max reach
 %rmax = computeArmMaxReach(robotModel);
 %fprintf('arm max reach (m): %f\n', rmax);
@@ -99,7 +105,7 @@ for step = 1:sim.maxSteps
 
         xy_error = norm(robotModel.eta(1:2) - w_vehicle_goal_position(1:2));
 
-        if alt_error < 0.1 && abs(robotModel.theta_error) < 0.1
+        if alt_error < 0.1 && abs(robotModel.err_angle) < 0.1
             % Vehicle is landed and aligned
             if d > rmax && ~goalReset
                 goalReset = true;  
@@ -163,7 +169,7 @@ for step = 1:sim.maxSteps
             pos_error = norm(robotModel.eta(1:2) - w_vehicle_goal_position(1:2));
             fprintf('Vehicle position error (m): %.3f\n\n', pos_error);
         elseif missionPhase == 2
-            fprintf('Heading error (rad): %.3f\n', robotModel.theta_error);
+            fprintf('Heading error (rad): %.3f\n', robotModel.err_angle);
             fprintf('Vehicle position error (m): %.3f\n\n', pos_error);
         elseif missionPhase == 3
             tool_pos_error = norm(robotModel.wTt(1:3,4) - robotModel.wTg(1:3,4));

@@ -1,25 +1,28 @@
 %% 
-classdef TaskVehicleLand < Task   
+classdef TaskLand < Task   
     properties
     end
 
     methods
         function updateReference(obj, robot)
             if isempty(robot.altitude)
-                alt = 2;
+                altitude = 1.0;   % fallback value
             else
-                alt = robot.altitude;
+                altitude = robot.altitude;
             end
                       
-            obj.xdotbar = - 0.4 * (alt-0.5);
+            obj.xdotbar = 0.6 * (0.5 - altitude);
             obj.xdotbar = Saturate(obj.xdotbar, 0.5);
 
         end
 
         function updateJacobian(obj, robot)
-            % Jacobian maps z-velocity to altitude change
-            % [0 0 1] selects z component of linear velocity
-            obj.J = [0 0 1] * [zeros(3,7), eye(3), zeros(3,3)];
+            
+            n = [0 0 1];
+            J_arm = zeros(3,7);
+            J_vehicle = [eye(3) zeros(3,3)];
+
+            obj.J = n * [J_arm, J_vehicle];
         end
         
         function updateActivation(obj, robot)
