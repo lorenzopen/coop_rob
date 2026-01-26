@@ -1,6 +1,7 @@
 classdef TaskPosition < Task
     properties
         gain = 0.7    % proportional gain to reference velocity
+        error
     end
  
     methods
@@ -10,6 +11,7 @@ classdef TaskPosition < Task
             R = robot.vTw(1:3,1:3);
             obj.xdotbar = -obj.gain * R * v_lin;
             obj.xdotbar = Saturate(obj.xdotbar(1:3), 0.7);
+            obj.error = norm(v_lin(1:2));
 
         end
  

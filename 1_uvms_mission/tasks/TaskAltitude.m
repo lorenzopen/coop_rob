@@ -5,6 +5,7 @@ classdef TaskAltitude < Task
             altmin = 3.0;
             %gain (lambda)
             kp = 0.5;
+            error
     end
  
     methods
@@ -22,6 +23,7 @@ classdef TaskAltitude < Task
             %control variable
             obj.xdotbar = -obj.kp * error;
             obj.xdotbar = Saturate(obj.xdotbar,0.5);
+            obj.error = error;
         end
  
         function updateJacobian(obj,robot)

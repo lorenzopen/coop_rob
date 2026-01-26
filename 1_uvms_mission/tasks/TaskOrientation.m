@@ -1,6 +1,7 @@
 classdef TaskOrientation < Task
     properties
         error % Scalar for logging purposes
+        error_vec = [0;0;0];
     end
 
     methods
@@ -13,6 +14,7 @@ classdef TaskOrientation < Task
 
             % Store error norm for analysis
             obj.error = norm(ang_err);
+            obj.error_vec = ang_err;
         end
 
         function updateJacobian(obj, robot)
