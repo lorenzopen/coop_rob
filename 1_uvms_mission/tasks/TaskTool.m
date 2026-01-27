@@ -1,6 +1,6 @@
 classdef TaskTool < Task   
     properties
-
+    error
     end
 
 
@@ -11,6 +11,7 @@ classdef TaskTool < Task
             % limit the requested velocities...
             obj.xdotbar(1:3) = Saturate(obj.xdotbar(1:3), 0.4);
             obj.xdotbar(4:6) = Saturate(obj.xdotbar(4:6), 0.4);
+            obj.error = norm(v_lin);
         end
         function updateJacobian(obj, robot)
             bJe = RobustJacobian(robot.q);

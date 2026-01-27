@@ -104,7 +104,9 @@ for step = 1:sim.maxSteps
     elseif missionPhase == 2
         % --- PHASE 2: LANDING & REACHABILITY CHECK ---
         % Obiettivo: Scendere a quota operativa e verificare se il nodulo è raggiungibile
-        alt_error = abs(robotModel.altitude - 0.5); % Target altitude es. 0.5m
+        %alt_error = abs(robotModel.altitude - 0.5); % Target altitude es. 0.5m
+        %task_land.error = robotModel.altitude;
+
         % Calcoli per raggiungibilità (Reachability)
         w_veh_pos = robotModel.eta(1:2);
         w_arm_goal_pos_2d = w_arm_goal_position(1:2);
@@ -112,10 +114,10 @@ for step = 1:sim.maxSteps
         d_vec = w_arm_goal_pos_2d - w_veh_pos;
         d = norm(d_vec);
         % Errore XY residuo rispetto al target del veicolo attuale
-        xy_error = norm(robotModel.eta(1:2) - w_vehicle_goal_position(1:2));
+        %xy_error = norm(robotModel.eta(1:2) - w_vehicle_goal_position(1:2));
  
         % Se siamo atterrati e allineati
-        if alt_error < 0.1
+        if task_land.error < 0.1
             % Caso A: Nodulo troppo lontano (fuori workspace)
             if d > rmax && ~goalReset
                 goalReset = true;
@@ -129,7 +131,7 @@ for step = 1:sim.maxSteps
                 robotModel.setGoal(w_arm_goal_position, w_arm_goal_orientation, ...
                                    w_vehicle_goal_position, w_vehicle_goal_orientation);
             % Caso B: Nodulo raggiungibile e veicolo posizionato
-            elseif xy_error < 0.2
+            elseif task_position.error < 0.2
                  disp("Landing complete & Reachable - switch to Manipulation");
                  % Assumiamo tu abbia definito un'azione chiamata "Manipulation"
                  % Se nel codice originale era "Task Move To", cambia il nome qui sotto
@@ -140,11 +142,12 @@ for step = 1:sim.maxSteps
     elseif missionPhase == 3
         % --- PHASE 3: MANIPULATION ---
         % Obiettivo: Portare il tool sul goal
-        tool_pos_error = norm(robotModel.wTt(1:3,4) - robotModel.wTg(1:3,4));
-        if tool_pos_error < 0.02 && ~manFlag
+        %tool_pos_error = norm(robotModel.wTt(1:3,4) - robotModel.wTg(1:3,4));
+        
+        if task_tool.error < 0.02 && ~manFlag
             manFlag = true;
             disp("Manipulation complete!");
-            % break; % Scommenta se vuoi terminare la simulazione qui
+         break; % Scommenta se vuoi terminare la simulazione qui
         end
     end
 

@@ -1,6 +1,7 @@
 %% 
 classdef TaskLand < Task   
     properties
+        error
     end
 
     methods
@@ -13,6 +14,7 @@ classdef TaskLand < Task
                       
             obj.xdotbar = 0.6 * (0.5 - altitude);
             obj.xdotbar = Saturate(obj.xdotbar, 0.5);
+            obj.error = altitude - 0.5;
 
         end
 
