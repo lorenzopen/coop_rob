@@ -9,6 +9,9 @@ classdef panda_arm < handle
         qdot
         xdot
         xdot_coop
+
+        v_coop
+        wTo_partner
         %% --- Geometry ---
         wTb
         %% --- Limits ---
@@ -82,15 +85,13 @@ classdef panda_arm < handle
 
         function update_transform(obj)
             % Compute forward kinematics of the robot
-                
+
             obj.bTe=getTransform(obj.robot_model.franka,[obj.q',0,0],'panda_link7');
             obj.wTe=obj.wTb*obj.bTe;
-            %TO DO: Update the transformation from world frame to Tool frame
-            obj.wTt = obj.wTe*obj.eTt;
-            obj.alt = obj.wTe(3,4); %Update altitude
+            obj.wTt =obj.wTe*obj.eTt; 
             if(~isempty(obj.tTo))
                 obj.wTo = obj.wTt * obj.tTo;
-            end
+            end        
         end
         
         function update_jacobian(obj)
@@ -108,10 +109,10 @@ classdef panda_arm < handle
         
         function [xdotbar] = compute_desired_refVelocity(obj)
             % Compute desired object velocity for cooperative manipulation
-            [v_ang, v_lin] = CartError(obj.wTt, obj.wTo);
+            [v_ang, v_lin] = CartError(obj.wTog, obj.wTo); 
 
             % Desired object velocity
-            xdotbar = 0.2*[v_ang; v_lin];
+            xdotbar = 0.5 * [v_ang; v_lin]; % Gain aumentato per reattività
 
             % Saturation
             xdotbar(1:3) = Saturate(xdotbar(1:3), 0.3);
