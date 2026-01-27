@@ -64,35 +64,26 @@ rigid_constraint = RigidConstrTask("BM", "RIGID_CONSTRAINT");
 stop_velocities_task_L = StopTask("L","STOP_VEL_L");
 stop_velocities_task_R = StopTask("R","STOP_VEL_R");
 
-%---------------------------------------------
-
-
-
-% Bimanual Rigid Constraint Tasks
-
-
-% Stop Motion Tasks
-
 
 %Actions for each phase: go to phase, coop_motion phase, end_motion phase
-go_to = {tool_alt_task_L, tool_alt_task_R, jl_L, jl_R, left_tool_task, right_tool_task};
-bimanual_manipulation = {rigid_constraint, tool_alt_task_L, tool_alt_task_R, jl_L, jl_R, object_task_l, object_task_r};
+go_to = {jl_L, jl_R, tool_alt_task_L, tool_alt_task_R,  left_tool_task, right_tool_task};
+bimanual_manipulation = {rigid_constraint, jl_L, jl_R, tool_alt_task_L, tool_alt_task_R, object_task_l, object_task_r};
 stop_motion = {tool_alt_task_L, tool_alt_task_R, stop_velocities_task_R, stop_velocities_task_L};
 
 % Unifying task list
-unified_task_list = {rigid_constraint, tool_alt_task_L, tool_alt_task_R, jl_L, jl_R, left_tool_task, right_tool_task, object_task_l, object_task_r, stop_velocities_task_R, stop_velocities_task_L};
+unified_task_list = {rigid_constraint,jl_L, jl_R, tool_alt_task_L, tool_alt_task_R, left_tool_task, right_tool_task, object_task_l, object_task_r, stop_velocities_task_R, stop_velocities_task_L};
 %Load Action Manager Class and load actions
 actionManager = ActionManager();
 actionManager.addAction(go_to, "Go To Position");
 actionManager.addAction(bimanual_manipulation, "Bimanual Manipulation");
 actionManager.addAction(stop_motion, "Stop Motion");
-actionManager.addUnifyingTaskList(unified_task_list);
+actionManager.addUnifiedList(unified_task_list);
 
 disp(actionManager.actionsName)
 
 % Track mission phases
-missionManager = MissionManager();
-missionManager.missionPhase = 1;
+bimanualmanager = BimanualManipulatorManager();
+bimanualmanager.missionPhase = 1;
 
 %Initiliaze robot interface
 robot_udp=UDP_interface(real_robot);
@@ -113,7 +104,7 @@ for t = 0:dt:end_time
     bm_sim.update_full_kinematics();
   
     % Update Mission Phase based on current state
-    missionManager.updateMissionPhase(actionManager, bm_sim);
+    bimanualmanager.updateMissionPhase(actionManager, bm_sim);
     
     % 3. Compute control commands for current action
     [q_dot]=actionManager.computeICAT(bm_sim, dt);
@@ -128,7 +119,7 @@ for t = 0:dt:end_time
     logger.update(bm_sim.time,bm_sim.loopCounter)
     if mod(bm_sim.loopCounter, round(1 / bm_sim.dt)) == 0
         fprintf('t = %.2f s\n', bm_sim.time);
-        if missionManager.missionPhase == 2
+        if bimanualmanager.missionPhase == 2
             fprintf('Left arm distance to goal = %.3f m\n', bm_sim.left_arm.dist_to_goal);
             fprintf('Right arm distance to goal = %.3f m\n', bm_sim.right_arm.dist_to_goal);
         end

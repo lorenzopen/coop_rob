@@ -77,6 +77,7 @@ classdef panda_arm < handle
 
         function update_transform(obj)
             % Compute forward kinematics of the robot
+            
             obj.bTe=getTransform(obj.robot_model.franka,[obj.q',0,0],'panda_link7');
             obj.wTe=obj.wTb*obj.bTe;
             obj.wTt=obj.wTe*obj.eTt;
