@@ -40,7 +40,7 @@ offset = (obj_length/2) - 0.01;
 arm_dist_offset = [offset 0 0]';
 arm1.setGoal(w_obj_pos, w_obj_ori, -arm_dist_offset, rotation(pi, -pi/6, 0));
 % We take into account that the right arm is rotated of 180 degrees along z w.r.t left arm
-arm2.setGoal(w_obj_pos, w_obj_ori, +arm_dist_offset, rotation(pi, pi/6, 0)*rotation(0,0,pi));
+arm2.setGoal(w_obj_pos, w_obj_ori, +arm_dist_offset, rotation(pi, -pi/6, pi));
 
 %Define Object goal frame (Cooperative Motion)
 wTog=[rotation(0,0,0) [0.65, -0.35, 0.28]'; 0 0 0 1];
@@ -51,29 +51,36 @@ arm2.set_obj_goal(wTog)
 % Go to Position Tasks
 left_tool_task=tool_task("L","LT");
 right_tool_task=tool_task("R","RT");
-ee_alt_L = ee_min_altitude_task("L","EE_ALT_L");
-ee_alt_R = ee_min_altitude_task("R","EE_ALT_R");
-jl_L = joint_limits_task("L","JL_L");
-jl_R = joint_limits_task("R","JL_R");
+tool_alt_task_L = ToolAltitudeLimit("L","TOOL_ALT_TASK_L");
+tool_alt_task_R = ToolAltitudeLimit("R","TOOL_ALT_TASK_R");
+jl_L = JointLimitTask('L', 'JL_Safe', 0.15);
+jl_R = JointLimitTask("R","JR_Safe", 0.15);
+
+
+
+object_task_l = ObjectTask("L","OBJECT_MOTION_L");
+object_task_r = ObjectTask("R","OBJECT_MOTION_R");
+rigid_constraint = RigidConstrTask("BM", "RIGID_CONSTRAINT");
+stop_velocities_task_L = StopTask("L","STOP_VEL_L");
+stop_velocities_task_R = StopTask("R","STOP_VEL_R");
+
+%---------------------------------------------
+
+
 
 % Bimanual Rigid Constraint Tasks
-rigid_constraint = rigid_constraint_task("BM", "RIGID_CONSTRAINT");
-object_task_l = object_motion_task("L","OBJECT_MOTION_L");
-object_task_r = object_motion_task("R","OBJECT_MOTION_R");
+
 
 % Stop Motion Tasks
-stop_velocities_task_L = stop_velocities_task("L","STOP_VEL_L");
-stop_velocities_task_R = stop_velocities_task("R","STOP_VEL_R");
+
 
 %Actions for each phase: go to phase, coop_motion phase, end_motion phase
-go_to = {ee_alt_L, ee_alt_R, jl_L, jl_R, left_tool_task, right_tool_task};
-bimanual_manipulation = {rigid_constraint, ee_alt_L, ee_alt_R, jl_L, jl_R, object_task_l, object_task_r};
-stop_motion = {ee_alt_L, ee_alt_R, stop_velocities_task_R, stop_velocities_task_L};
+go_to = {tool_alt_task_L, tool_alt_task_R, jl_L, jl_R, left_tool_task, right_tool_task};
+bimanual_manipulation = {rigid_constraint, tool_alt_task_L, tool_alt_task_R, jl_L, jl_R, object_task_l, object_task_r};
+stop_motion = {tool_alt_task_L, tool_alt_task_R, stop_velocities_task_R, stop_velocities_task_L};
 
 % Unifying task list
-unified_task_list = {rigid_constraint, ee_alt_L, ee_alt_R, jl_L, jl_R, ...
-                     left_tool_task, right_tool_task, object_task_l, object_task_r, ...
-                     stop_velocities_task_R, stop_velocities_task_L};
+unified_task_list = {rigid_constraint, tool_alt_task_L, tool_alt_task_R, jl_L, jl_R, left_tool_task, right_tool_task, object_task_l, object_task_r, stop_velocities_task_R, stop_velocities_task_L};
 %Load Action Manager Class and load actions
 actionManager = ActionManager();
 actionManager.addAction(go_to, "Go To Position");
