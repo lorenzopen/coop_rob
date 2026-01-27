@@ -116,5 +116,16 @@ classdef ActionManager < handle
                 end
             end
         end
+
+        function task = getTaskByName(obj, name_string)
+            task = [];
+
+            for i = 1:length(obj.unifiedList)
+                if strcmp(obj.unifiedList{i}.task_name, name_string)
+                    task = obj.unifiedList{i};
+                    return;
+                end
+            end
+        end
     end
 end

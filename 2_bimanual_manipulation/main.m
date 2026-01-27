@@ -74,9 +74,9 @@ stop_motion = {tool_alt_task_L, tool_alt_task_R, stop_velocities_task_R, stop_ve
 unified_task_list = {rigid_constraint,jl_L, jl_R, tool_alt_task_L, tool_alt_task_R, left_tool_task, right_tool_task, object_task_l, object_task_r, stop_velocities_task_R, stop_velocities_task_L};
 %Load Action Manager Class and load actions
 actionManager = ActionManager();
-actionManager.addAction(go_to, "Go To Position");
+actionManager.addAction(go_to, "Go To Grasping Point");
 actionManager.addAction(bimanual_manipulation, "Bimanual Manipulation");
-actionManager.addAction(stop_motion, "Stop Motion");
+actionManager.addAction(stop_motion, "Stop Manipulation");
 actionManager.addUnifiedList(unified_task_list);
 
 disp(actionManager.actionsName)
