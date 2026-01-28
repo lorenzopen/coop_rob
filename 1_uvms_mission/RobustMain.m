@@ -82,7 +82,7 @@ goalReset = false;
 %rmax = computeArmMaxReach(robotModel);
 %fprintf('arm max reach (m): %f\n', rmax);
 %rmax = 1.855736; % precomputed value using computeArmMaxReach function
-rmax = 1.3; % set smaller value to force vehicle repositioning
+rmax = 1.5; % set smaller value to force vehicle repositioning
 
 % Main simulation loop
 for step = 1:sim.maxSteps
