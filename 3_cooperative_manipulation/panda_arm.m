@@ -41,6 +41,8 @@ classdef panda_arm < handle
             % Constructor
             obj.robot_model = model;
             obj.wTb = wTb;
+            obj.wJt = zeros(6,7); 
+            obj.wJo = zeros(6,7);
             
             %Initialize Default State
             obj.q=[0.0167305,-0.762614,-0.0207622,-2.34352,-0.0305686,1.53975,0.753872]';
@@ -100,6 +102,17 @@ classdef panda_arm < handle
             bJe = geometricJacobian(obj.robot_model.franka,[obj.q',0,0],'panda_link7');%DO NOT EDIT
             Ste = [eye(3) zeros(3); -skew(obj.wTe(1:3,1:3)*obj.eTt(1:3,4)) eye(3)];
             obj.wJt = Ste * [obj.wTb(1:3,1:3) zeros(3,3); zeros(3,3) obj.wTb(1:3,1:3)] * bJe(:, 1:7);
+            
+            if ~isempty(obj.tTo)
+                r_w = obj.wTo(1:3,4) - obj.wTt(1:3,4);
+                S = skew(r_w);
+                X = [eye(3) zeros(3); -S eye(3)];
+                obj.wJo = X * obj.wJt;
+            else
+        
+                obj.wJo = obj.wJt; 
+            end
+        
         end
                 
         function compute_object_frame(obj)

@@ -37,10 +37,12 @@ w_obj_ori = rotation(0,0,0);
 offset = (obj_length/2) - 0.005;
 arm_dist_offset = [offset 0 0]';
 arm1.setGoal(w_obj_pos, w_obj_ori, -arm_dist_offset, rotation(pi, -pi/9, 0));    
-arm2.setGoal(w_obj_pos, w_obj_ori, +arm_dist_offset, rotation(pi, pi/9, 0)*rotation(0,0,pi));
+arm2.setGoal(w_obj_pos, w_obj_ori, +arm_dist_offset, rotation(pi, -pi/9, pi));
 
     % Phase 2 Goal: Object Cooperative Goal
-wTog = [rotation(0,0,0) [0.60, 0.40, 0.48]'; 0 0 0 1]; % Goal Esercizio 3
+% wTog = [rotation(0,0,0) [0.60, 0.40, 0.48]'; 0 0 0 1]; % Goal Esercizio 3
+wTog = [rotation(0,0,0) [6, 4, 0.48]'; 0 0 0 1]; % Goal Esercizio 3
+
 arm1.set_obj_goal(wTog);
 arm2.set_obj_goal(wTog);
 
@@ -222,7 +224,9 @@ arm2.set_obj_goal(wTog);
             % Phase 3: Stop
             % Assicuriamoci che l'Action Manager abbia switchato all'azione "Stop"
             ql_dot = ql_dot_nc;
-            qr_dot = qr_dot_nc;      
+            qr_dot = qr_dot_nc;  
+            
+            break; % Exit simulation loop
         end  
 
         % 6. get the two variables for integration
