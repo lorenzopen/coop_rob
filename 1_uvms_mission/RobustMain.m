@@ -34,7 +34,7 @@ task_reachability = TaskProximityBoundary();
 
 
 task_navigation_set = { task_altitude, task_orientation, task_position };        % Navigation
-task_landing_set = { task_horizontal, task_heading, task_land, task_reachability };  % Landing
+task_landing_set = { task_horizontal, task_heading, task_land, task_position, task_reachability };  % Landing
 task_manipulation_set = { task_stop, task_tool };                                % Manipulation
 
 % Unifying task list
@@ -70,19 +70,7 @@ missionPhase = 1;
 manFlag = false; % manipulation complete flag for logging
 goalReset = false;
 
-
-%---------------------------------------------------------------------
-%---------------------------------------------------------------------
-% da cambiare come fare workspace check del braccio, cosi troppo specifico
-%---------------------------------------------------------------------
-%---------------------------------------------------------------------
-
-
-% compute arm max reach
-%rmax = computeArmMaxReach(robotModel);
-%fprintf('arm max reach (m): %f\n', rmax);
-%rmax = 1.855736; % precomputed value using computeArmMaxReach function
-rmax = 1.5; % set smaller value to force vehicle repositioning
+rmax = 1.3; % set smaller value to force vehicle repositioning
 
 % Main simulation loop
 for step = 1:sim.maxSteps
@@ -111,30 +99,42 @@ for step = 1:sim.maxSteps
         %task_land.error = robotModel.altitude;
 
         % Calcoli per raggiungibilità (Reachability)
-        % w_veh_pos = robotModel.eta(1:2);
-        % w_arm_goal_pos_2d = w_arm_goal_position(1:2);
+        w_veh_pos = robotModel.eta(1:2);
+         w_arm_goal_pos_2d = w_arm_goal_position(1:2);
         % % Vettore distanza Veicolo -> Oggetto
-        % d_vec = w_arm_goal_pos_2d - w_veh_pos;
-        % d = norm(d_vec);
+         vec_to_target = w_arm_goal_pos_2d - w_veh_pos;
+         dist_target = norm(vec_to_target);
         % Errore XY residuo rispetto al target del veicolo attuale
         %xy_error = norm(robotModel.eta(1:2) - w_vehicle_goal_position(1:2));
  
         % Se siamo atterrati e allineati
         %if task_land.error < 0.1
             % Caso A: Nodulo troppo lontano (fuori workspace)
-            % if d > rmax && ~goalReset
-            %     goalReset = true;
-            %     fprintf('Adjusting vehicle goal to guarantee nodule reachability (dist=%.2f)\n', d);
-            %     % Calcola correzione: ci avviciniamo lungo la linea d_vec
+             if dist_target > rmax && ~goalReset
+                 goalReset = true;
+                 fprintf('Adjusting vehicle goal to guarantee nodule reachability (dist=%.2f)\n', dist_target);
+                 % Calcola correzione: ci avviciniamo lungo la linea d_vec
             %     % in modo che la distanza finale sia rmax
-            %     correction = d_vec * (1 - rmax/d); 
-            %     % Aggiorniamo il goal del veicolo
-            %     w_vehicle_goal_position(1:2) = w_vehicle_goal_position(1:2) + correction;
+                 %correction = d_vec * (1 - rmax/d);
+                 
+                 % 1. Calcoliamo di quanto siamo fuori range (Distanza in eccesso)
+                 excess_dist = dist_target - rmax; 
+                    
+                % 2. Calcoliamo la direzione verso il target (Versore unitario)
+                 u_dir = vec_to_target / dist_target;
+
+                 % 3. Calcoliamo il vettore correzione
+                % "Spostati lungo la direzione del target, di una quantità pari all'eccesso"
+                correction = u_dir * excess_dist;
+
+                 % Aggiorniamo il goal del veicolo
+                 w_vehicle_goal_position(1:2) = w_vehicle_goal_position(1:2) + correction;
             %     % Inviamo il nuovo goal al robot
-            %     robotModel.setGoal(w_arm_goal_position, w_arm_goal_orientation, ...
-            %                        w_vehicle_goal_position, w_vehicle_goal_orientation);
+                 robotModel.setGoal(w_arm_goal_position, w_arm_goal_orientation, ...
+                                    w_vehicle_goal_position, w_vehicle_goal_orientation);
             % % Caso B: Nodulo raggiungibile e veicolo posizionato
-            if ((task_position.error < 0.2) & (task_land.error < 0.1))
+             
+            elseif ((task_position.error < 0.2) & (task_land.error < 0.1))
                  disp("Landing complete & Reachable - switch to Manipulation");
                  % Assumiamo tu abbia definito un'azione chiamata "Manipulation"
                  % Se nel codice originale era "Task Move To", cambia il nome qui sotto
@@ -147,7 +147,7 @@ for step = 1:sim.maxSteps
         % Obiettivo: Portare il tool sul goal
         %tool_pos_error = norm(robotModel.wTt(1:3,4) - robotModel.wTg(1:3,4));
         
-        if task_tool.error < 0.07 && ~manFlag
+        if task_tool.error < 0.02 && ~manFlag
             manFlag = true;
             disp("Manipulation complete!");
          break; % Scommenta se vuoi terminare la simulazione qui
