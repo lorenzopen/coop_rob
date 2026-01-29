@@ -61,8 +61,7 @@ classdef BimanualManipulatorManager < handle
 
                 case 2 % --- STATO 2: Bimanual Manipulation ---
                     
-                    % Recuperiamo il task oggetto usando il nome definito nel main ("OBJECT_MOTION_L")
-                    % Nota: Basta controllarne uno poiché sono coordinati dal vincolo rigido
+                    
                     taskObj = actionManager.getTaskByName('OBJECT_MOTION_L');
                     
                     if ~isempty(taskObj) && ~isempty(taskObj.xdotbar)
@@ -79,9 +78,8 @@ classdef BimanualManipulatorManager < handle
                         end
                     end
 
-                case 3 % --- STATO 3: Stop Motion ---
-                    % Fine
-            end
+                case 3 % --- Stop Motion ---
+                  
         end
     end
 end

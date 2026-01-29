@@ -3,7 +3,7 @@ classdef ActionManager < handle
         actions = {}      % cell array of actions (each action = stack of tasks)
         currentAction = 1 % index of currently active action
         
-        % Properties from Friend's logic (needed for transitions)
+        
         previousAction = 1
         unifiedList = {}  % Global list defining priority order
         t = 0             % Transition timer

@@ -1,8 +1,6 @@
 classdef ObjectTask < Task
     % ObjectTaskAdvanced
-    % MIX: Unisce la precisione geometrica (trasporto dello Jacobiano sul 
-    % centro dell'oggetto) con la compatibilità strutturale per il sistema
-    % a 14 DoF (Left + Right arm).
+   
 
     properties
         gain = 1.0;
@@ -23,9 +21,7 @@ classdef ObjectTask < Task
             end
 
             % 2. Calcolo dell'errore
-            % Usiamo wTog (Goal) e wTo (Oggetto Corrente).
-            % Nota: wTo è la posa reale dell'oggetto, che tiene conto 
-            % implicitamente dell'offset dalla pinza.
+       
             [v_ang, v_lin] = CartError(robot.wTog, robot.wTo);
 
             % Log interno per debug/grafici

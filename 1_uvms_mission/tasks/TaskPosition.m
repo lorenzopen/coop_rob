@@ -21,7 +21,7 @@ classdef TaskPosition < Task
           
             % So J = [I3  0], dimension (3x6)
  
-            J_vehicle = [-eye(3) zeros(3,3)]; %riportato da frame veicolo al mondo robot.wTv(1:3,1:3)
+            J_vehicle = [-eye(3) zeros(3,3)]; 
             % The full system has 13 DOFs: [v_nu; q_dot]
             % So we append zeros for the manipulator part (7 joints)
             obj.J = [zeros(3,7) J_vehicle];

@@ -1,8 +1,5 @@
 classdef RigidConstrTask < Task
-    % RigidClosedChainConstraint
-    % Impone che le due braccia si muovano in modo coordinato rispettando 
-    % la rigidità dell'oggetto afferrato.
-    % Equazione: J_obj_L * qdot_L - J_obj_R * qdot_R = 0
+
 
     properties
         % Flag per indicare al solver che questo è un vincolo rigido (HARD constraint)
