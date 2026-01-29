@@ -62,15 +62,14 @@ actionManager.setCurrentAction(IDX_NAV);
 robotModel.setGoal(w_arm_goal_position, w_arm_goal_orientation, w_vehicle_goal_position, w_vehicle_goal_orientation);
 
 % Initialize the logger
-logger = SimulationLogger(ceil(endTime/dt)+1, robotModel, task_navigation_set);
-idx=1;
-
+% Assicurati che unified_task_list esista come nel codice che mi hai mostrato
+logger = SimulationLogger(ceil(endTime/dt)+1, robotModel, unified_task_list);
 % Initialize mission phase: 1=Navigation, 2=Landing, 3=Manipulation
 missionPhase = 1;
 manFlag = false; % manipulation complete flag for logging
 goalReset = false;
 
-rmax = 1.3; % set smaller value to force vehicle repositioning
+rmax = 1.5; % set smaller value to force vehicle repositioning
 
 % Main simulation loop
 for step = 1:sim.maxSteps
