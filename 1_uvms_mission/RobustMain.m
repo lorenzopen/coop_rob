@@ -163,7 +163,7 @@ for step = 1:sim.maxSteps
     unity.send(robotModel);
 
     % 5. Logging
-    logger.update(sim.time, sim.loopCounter);
+    logger.update(sim.time, sim.loopCounter,missionPhase);
 
     % 6. Optional debug prints
     if mod(sim.loopCounter, round(0.3 / sim.dt)) == 0
