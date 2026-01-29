@@ -165,9 +165,7 @@ classdef SimulationLogger < handle
         end
 
 
-        % =================================================================
-        % PLOT: JOINT LIMITS ACTIVATION (RICHIESTA UTENTE)
-        % =================================================================
+      
         function plotJointLimitActivations(obj)
             idx_valid = 1:obj.data_len;
             time = obj.t(idx_valid);

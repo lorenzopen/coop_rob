@@ -68,8 +68,7 @@ classdef JointLimitTask < Task
             dist_max = robot.jlmax - robot.q;
             
             % Attivazione: 1 al limite, 0 oltre il delta (zona sicura)
-            % Usiamo arrayfun per applicare la funzione di attivazione a ogni giunto
-            % Prende la distanza minima (che sia verso il limite superiore o inferiore)
+           
             dist_effettiva = min(dist_min, dist_max);
             
             A_diag = arrayfun(@(d) DecreasingBellShapedFunction(0, obj.delta, 0, 1, d), dist_effettiva);
