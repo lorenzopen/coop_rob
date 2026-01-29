@@ -25,7 +25,7 @@ classdef ActionManager < handle
         end
 
         function addUnifyingTaskList(obj, list)
-            % Nota: ho rinominato il metodo per coerenza col main (era addUnifiedList)
+
             obj.unifiedList = list;
         end
         
@@ -34,9 +34,7 @@ classdef ActionManager < handle
         end
 
         function [ydotbar] = computeICAT(obj, robot, dt)
-            % MODIFICA ES 3: 'robot' ora è il singolo braccio (7 DOF)
             
-            % 1. Determina la dimensione del problema dinamicamente
             n = length(robot.q); 
 
             % 2. Update timer
@@ -44,7 +42,7 @@ classdef ActionManager < handle
 
             % 3. Update references, Jacobians, activations for ALL tasks
             for i = 1:length(obj.unifiedList)
-                % Chiama i metodi dei task passando il singolo robot
+
                 obj.unifiedList{i}.updateReference(robot);
                 obj.unifiedList{i}.updateJacobian(robot);
                 obj.unifiedList{i}.updateActivation(robot);
@@ -70,7 +68,6 @@ classdef ActionManager < handle
             prevTasks = obj.actions{obj.previousAction};
 
             % 5. Perform ICAT (task-priority inverse kinematics)
-            % MODIFICA ES 3: Usa dimensione n (7) invece di 14 fisso
             ydotbar = zeros(n,1);
             Qp = eye(n);
             
@@ -96,7 +93,7 @@ classdef ActionManager < handle
                 end
 
                 
-                % Execute iCAT only if task is active
+                % Execute iCAT only i task is active
                 if w > 1e-6
                     % iCAT_task gestisce le dimensioni basandosi sulle matrici passate
                     [Qp, ydotbar] = iCAT_task(task.A * w, task.J, Qp, ydotbar, task.xdotbar, 1e-4, 0.01, 10);
@@ -104,7 +101,6 @@ classdef ActionManager < handle
             end
 
             % 6. Last task: residual damping
-            % MODIFICA ES 3: eye(n) invece di eye(14)
             [~, ydotbar] = iCAT_task(eye(n), eye(n), Qp, ydotbar, zeros(n,1), 1e-4, 0.01, 10);
         end
 
@@ -129,7 +125,7 @@ classdef ActionManager < handle
             end
         end
         
-        % Metodo helper utile per debug
+        % Metodo debug
         function task = getTaskByName(obj, name_string)
             task = [];
             for i = 1:length(obj.unifiedList)

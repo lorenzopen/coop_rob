@@ -7,7 +7,7 @@ addpath('./tasks')
 clc;clear;close all; 
 %Simulation Parameters
 dt = 0.005;
-end_time = 20;
+end_time = 13;
 
 % Initialize Franka Emika Panda Model
 model = load("panda.mat");
@@ -40,16 +40,14 @@ arm1.setGoal(w_obj_pos, w_obj_ori, -arm_dist_offset, rotation(pi, -pi/9, 0));
 arm2.setGoal(w_obj_pos, w_obj_ori, +arm_dist_offset, rotation(pi, -pi/9, pi));
 
     % Phase 2 Goal: Object Cooperative Goal
- %wTog = [rotation(0,0,0) [0.60, 0.40, 0.48]'; 0 0 0 1]; % Goal Esercizio 3
-wTog = [rotation(0,0,0) [0.85, 0, 0.07]'; 0 0 0 1]; % Goal Esercizio 3
+ wTog = [rotation(0,0,0) [0.60, 0.40, 0.48]'; 0 0 0 1]; % Goal Esercizio 3
+%wTog = [rotation(0,0,0) [0.85, 0, 0.15]'; 0 0 0 1]; % Goal Esercizio 3
 
 arm1.set_obj_goal(wTog);
 arm2.set_obj_goal(wTog);
 
 
     % 1. Phase 1 Tasks: Move Tool to Grasp Point
-    % Assumo tu abbia una classe CartesianTask standard. 
-    % Se non l'hai, usa ObjectTask ma ricorda che calcola l'errore sull'Oggetto, non sul Tool.
     left_tool_task = tool_task("L", "CART_L"); 
     right_tool_task = tool_task("R", "CART_R");
     
@@ -64,7 +62,7 @@ arm2.set_obj_goal(wTog);
     object_task_L = ObjectTask("L", "OBJ_MOT_L");
     object_task_R = ObjectTask("R", "OBJ_MOT_R");
     
-    % 4. Phase 2 Tasks: Cooperative Constraint (Tracks v_coop)
+    % 4. Phase 2 Tasks: Cooperative Constraint 
     coop_task_L = CooperativeRigidConstrTask("L", "COOP_CSTR_L");
     coop_task_R = CooperativeRigidConstrTask("R", "COOP_CSTR_R");
     
@@ -105,9 +103,7 @@ arm2.set_obj_goal(wTog);
     actionManagerR.addUnifyingTaskList(unifiedTasksR);
 
     % --- ACTION MANAGERS (COOPERATIVE EXECUTION) ---
-    % Used in Phase 2 AFTER computing v_coop. 
     % Priority: 1. Cooperative Constraint (Motion) 2. Safety
-    % NOTA: Rimosso ObjectTask qui, perché il movimento è imposto dal CoopTask tramite v_coop
     
     actionManagerL_coop = ActionManager();
     actionManagerL_coop.addAction({coop_task_L, ee_alt_L, jl_L}, "Coop Exec Left");
@@ -129,7 +125,8 @@ arm2.set_obj_goal(wTog);
     % Initialize logger
     %logger_left = SimulationLogger(ceil(end_time/dt)+1, coop_system.left_arm);
     %logger_right = SimulationLogger(ceil(end_time/dt)+1, coop_system.right_arm);
-logger = SimulationLogger(ceil(end_time/dt)+1, coop_system, unifiedTasksL, unifiedTasksR);    for t = 0:dt:end_time
+logger = SimulationLogger(ceil(end_time/dt)+1, coop_system, unifiedTasksL, unifiedTasksR);    
+    for t = 0:dt:end_time
         % 1. Receive UDP packets - DO NOT EDIT
         [ql, qr] = robot_udp.udp_receive(t);
         if real_robot==true %Only in real setup, assign current robot configuration as initial configuratio
@@ -155,7 +152,7 @@ logger = SimulationLogger(ceil(end_time/dt)+1, coop_system, unifiedTasksL, unifi
         % --- DEBUG ---
         % if norm(ql_dot_nc) == 0
         %     disp('ql_dot_nc è ZERO. Controllo errori cartesiani...');
-        %     % Stampa l'errore che vede il task
+        %     
         %     err_L = norm(left_tool_task.xdotbar); 
         %     fprintf('Reference Task L: %f\n', err_L);
         % end
@@ -173,7 +170,7 @@ logger = SimulationLogger(ceil(end_time/dt)+1, coop_system, unifiedTasksL, unifi
                 coop_system.left_arm.compute_object_frame();
                 coop_system.right_arm.compute_object_frame();
                 
-                % Forza l'aggiornamento immediato degli Jacobiani (ora useranno tTo)
+                % Forza immediato  Jacobiani (ora useranno tTo)
                 coop_system.left_arm.updateJacobian();
                 coop_system.right_arm.updateJacobian();
                 
@@ -183,7 +180,7 @@ logger = SimulationLogger(ceil(end_time/dt)+1, coop_system, unifiedTasksL, unifi
             J_oL = coop_system.left_arm.wJo; 
             J_oR = coop_system.right_arm.wJo;
             
-            % Velocità Cartesiane "Desiderate" dai singoli agenti
+            % Vel Cartesiane "Desiderate" dai singoli agenti
             xdot_l = J_oL * ql_dot_nc;
             xdot_r = J_oR * qr_dot_nc;
             
@@ -264,6 +261,8 @@ logger.update(coop_system.time, coop_system.loopCounter, missionManager.missionP
     % logger_right.plotAll();
 
     logger.plotAll(); % Esegue i plot principali
-logger.plotCooperativeConstraint(); % Specifico per la tua domanda
-logger.plotSafetyTasks();
+    logger.plotAnalysisQ2();
+    logger.plotDetailedVelocities();
+%logger.plotCooperativeConstraint(); 
+%logger.plotSafetyTasks();
 end
