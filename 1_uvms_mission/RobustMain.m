@@ -1,3 +1,5 @@
+%Vercellino Alessandro S4843829
+%Penna Lorenzo 4953984
 % Add paths
 addpath('./simulation_scripts');
 addpath('./tools');
