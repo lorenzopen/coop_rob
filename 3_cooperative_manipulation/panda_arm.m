@@ -125,7 +125,6 @@ classdef panda_arm < handle
                 Sot = [eye(3) zeros(3); -skew(w_r_ot) eye(3)];
                 obj.wJo = Sot * obj.wJt;
             else
-                % Se non abbiamo l'oggetto, wJo è uguale al tool
                 obj.wJo = obj.wJt; 
             end
         

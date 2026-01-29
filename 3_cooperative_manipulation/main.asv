@@ -7,7 +7,7 @@ addpath('./tasks')
 clc;clear;close all; 
 %Simulation Parameters
 dt = 0.005;
-end_time = 20;
+end_time = 13;
 
 % Initialize Franka Emika Panda Model
 model = load("panda.mat");
@@ -41,7 +41,7 @@ arm2.setGoal(w_obj_pos, w_obj_ori, +arm_dist_offset, rotation(pi, -pi/9, pi));
 
     % Phase 2 Goal: Object Cooperative Goal
  %wTog = [rotation(0,0,0) [0.60, 0.40, 0.48]'; 0 0 0 1]; % Goal Esercizio 3
-wTog = [rotation(0,0,0) [0.7, 0.4, 0.07]'; 0 0 0 1]; % Goal Esercizio 3
+wTog = [rotation(0,0,0) [0.85, 0, 0.15]'; 0 0 0 1]; % Goal Esercizio 3
 
 arm1.set_obj_goal(wTog);
 arm2.set_obj_goal(wTog);
@@ -264,6 +264,8 @@ logger.update(coop_system.time, coop_system.loopCounter, missionManager.missionP
     % logger_right.plotAll();
 
     logger.plotAll(); % Esegue i plot principali
-logger.plotCooperativeConstraint(); % Specifico per la tua domanda
-logger.plotSafetyTasks();
+    logger.plotAnalysisQ2();
+    logger.plotDetailedVelocities();
+%logger.plotCooperativeConstraint(); % Specifico per la tua domanda
+%logger.plotSafetyTasks();
 end
