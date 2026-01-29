@@ -67,11 +67,7 @@ classdef SimulationLogger < handle
             % Estraiamo asse Z veicolo nel frame mondo
             % vTw è disponibile nel robot model aggiornato
             kv = obj.robot.vTw(1:3,3); 
-            % Calcolo angolo rispetto alla verticale [0;0;1]
-            % rho = norm(cross(kv, [0;0;1])); % componente ortogonale
-            % h = dot(kv, [0;0;1]);           % componente parallela
-            % theta = atan2(rho, h);
-            % O più semplicemente usando acos (dato che sono versori)
+           
             % theta = acos(dot(kv, [0;0;1]));
             
             % Replichiamo esattamente la logica della TaskHorizontalAttitude per coerenza

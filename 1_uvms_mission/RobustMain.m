@@ -51,18 +51,12 @@ actionManager.addAction(task_landing_set);
 actionManager.addAction(task_manipulation_set);    
 actionManager.addUnifiedList(unified_task_list);
 
-% % Define desired positions and orientations (world frame)
-% w_arm_goal_position = [12.2025, 37.3748, -39.8860]'; % nodule position
-% w_arm_goal_orientation = [0, pi, pi/2];
-% w_vehicle_goal_position = [10.5 37.5 -38]';
-% w_vehicle_goal_orientation = [0, -0.06, 0.5];
 
 % Set current action
 actionManager.setCurrentAction(IDX_NAV);
 robotModel.setGoal(w_arm_goal_position, w_arm_goal_orientation, w_vehicle_goal_position, w_vehicle_goal_orientation);
 
 % Initialize the logger
-% Assicurati che unified_task_list esista come nel codice che mi hai mostrato
 logger = SimulationLogger(ceil(endTime/dt)+1, robotModel, unified_task_list);
 % Initialize mission phase: 1=Navigation, 2=Landing, 3=Manipulation
 missionPhase = 1;
@@ -78,12 +72,7 @@ for step = 1:sim.maxSteps
     % --- MISSION CONTROLLER ---
     if missionPhase == 1
         % --- PHASE 1: SAFE NAVIGATION ---
-        % Obiettivo: Avvicinarsi alla zona (XY) e allinearsi
-        %xy_error = norm(robotModel.eta(1:2) - w_vehicle_goal_position(1:2));
-        % Calcolo errore orientamento (Yaw: eta(6) vs goal(6))
-        % Nota: Normale differenza angolare
-        %yaw_err = abs(angdiff(robotModel.eta(6), w_vehicle_goal_orientation(3)));
-        %if xy_error < 0.2 && yaw_err < 0.1
+        
         pitch_error = task_orientation.error_vec(2); 
         yaw_error = task_orientation.error_vec(3);
         if ((task_position.error < 0.2) & (pitch_error < 0.01) & (yaw_error < 0.1))
@@ -93,10 +82,7 @@ for step = 1:sim.maxSteps
         end
     elseif missionPhase == 2
         % --- PHASE 2: LANDING & REACHABILITY CHECK ---
-        % Obiettivo: Scendere a quota operativa e verificare se il nodulo è raggiungibile
-        %alt_error = abs(robotModel.altitude - 0.5); % Target altitude es. 0.5m
-        %task_land.error = robotModel.altitude;
-
+        
         % Calcoli per raggiungibilità (Reachability)
         w_veh_pos = robotModel.eta(1:2);
          w_arm_goal_pos_2d = w_arm_goal_position(1:2);
@@ -112,31 +98,27 @@ for step = 1:sim.maxSteps
              if dist_target > rmax && ~goalReset
                  goalReset = true;
                  fprintf('Adjusting vehicle goal to guarantee nodule reachability (dist=%.2f)\n', dist_target);
-                 % Calcola correzione: ci avviciniamo lungo la linea d_vec
-            %     % in modo che la distanza finale sia rmax
-                 %correction = d_vec * (1 - rmax/d);
+              
                  
-                 % 1. Calcoliamo di quanto siamo fuori range (Distanza in eccesso)
+                 % 1. (Distanza in eccesso)
                  excess_dist = dist_target - rmax; 
                     
-                % 2. Calcoliamo la direzione verso il target (Versore unitario)
+                % 2.(Versore unitario)
                  u_dir = vec_to_target / dist_target;
 
                  % 3. Calcoliamo il vettore correzione
-                % "Spostati lungo la direzione del target, di una quantità pari all'eccesso"
+                
                 correction = u_dir * excess_dist;
 
                  % Aggiorniamo il goal del veicolo
                  w_vehicle_goal_position(1:2) = w_vehicle_goal_position(1:2) + correction;
-            %     % Inviamo il nuovo goal al robot
+                 % Inviamo il nuovo goal al robot
                  robotModel.setGoal(w_arm_goal_position, w_arm_goal_orientation, ...
                                     w_vehicle_goal_position, w_vehicle_goal_orientation);
             % % Caso B: Nodulo raggiungibile e veicolo posizionato
              
             elseif ((task_position.error < 0.2) & (task_land.error < 0.1))
                  disp("Landing complete & Reachable - switch to Manipulation");
-                 % Assumiamo tu abbia definito un'azione chiamata "Manipulation"
-                 % Se nel codice originale era "Task Move To", cambia il nome qui sotto
                  actionManager.setCurrentAction(IDX_MANIP); 
                  missionPhase = 3;
             end
@@ -196,12 +178,7 @@ for step = 1:sim.maxSteps
             % Stampa normale se inattivo
             fprintf('   Reachability inactive. (A=%.2f) \n', activation);
         end
-        % if missionPhase == 1
-        %     pos_error = norm(robotModel.eta(1:2) - w_vehicle_goal_position(1:2));
-        %     fprintf('Vehicle position error (m): %.3f\n\n', pos_error);
-        % elseif missionPhase == 2
-        %     fprintf('Heading error (rad): %.3f\n', robotModel.err_angle);
-        %     fprintf('Vehicle position error (m): %.3f\n\n', pos_error);
+       
         if missionPhase == 3
             tool_pos_error = norm(robotModel.wTt(1:3,4) - robotModel.wTg(1:3,4));
             fprintf('Tool position error (m): %.3f\n \n', tool_pos_error);
