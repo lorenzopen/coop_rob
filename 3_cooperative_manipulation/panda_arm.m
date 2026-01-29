@@ -28,6 +28,7 @@ classdef panda_arm < handle
         wTo
         robot_type
         tTo
+        wJe
         wJt
         wJo
         %% Sensor variables
@@ -41,6 +42,7 @@ classdef panda_arm < handle
             % Constructor
             obj.robot_model = model;
             obj.wTb = wTb;
+            obj.wJe = zeros(6,7);
             obj.wJt = zeros(6,7); 
             obj.wJo = zeros(6,7);
             
@@ -70,6 +72,8 @@ classdef panda_arm < handle
             obj.wTt = obj.wTe * obj.eTt;
 
             obj.xdot_coop = zeros(6,1);
+
+            obj.tTo = [];
           
         end
 
@@ -93,23 +97,35 @@ classdef panda_arm < handle
             obj.wTt =obj.wTe*obj.eTt; 
             if(~isempty(obj.tTo))
                 obj.wTo = obj.wTt * obj.tTo;
-            end        
+            end       
         end
         
         function update_jacobian(obj)
             % Compute Differential kinematics from the base frame to the
             % Tool Frame
             bJe = geometricJacobian(obj.robot_model.franka,[obj.q',0,0],'panda_link7');%DO NOT EDIT
-            Ste = [eye(3) zeros(3); -skew(obj.wTe(1:3,1:3)*obj.eTt(1:3,4)) eye(3)];
-            obj.wJt = Ste * [obj.wTb(1:3,1:3) zeros(3,3); zeros(3,3) obj.wTb(1:3,1:3)] * bJe(:, 1:7);
+            % 2. Ruotiamo lo Jacobiano nel World Frame
+            wRb = obj.wTb(1:3,1:3);
+            Rot_block = [wRb zeros(3); zeros(3) wRb];
+            obj.wJe = Rot_block * bJe(:, 1:7);
             
+            % 3. Trasporto dall'EE al Tool (wJt)
+            % Vettore r_te: da EE a Tool espresso in World Frame
+            w_r_te = obj.wTe(1:3,1:3) * obj.eTt(1:3,4);
+            
+            % Matrice trasporto 
+            Ste = [eye(3) zeros(3); -skew(w_r_te) eye(3)];
+            obj.wJt = Ste * obj.wJe;
             if ~isempty(obj.tTo)
-                r_w = obj.wTo(1:3,4) - obj.wTt(1:3,4);
-                S = skew(r_w);
-                X = [eye(3) zeros(3); -S eye(3)];
-                obj.wJo = X * obj.wJt;
+                % Vettore r_ot: da Tool a Oggetto espresso in World Frame
+                % tTo(1:3,4) è il vettore traslazione nel frame tool localmente
+                % Lo ruotiamo con wTt per averlo nel world
+                w_r_ot = obj.wTt(1:3,1:3) * obj.tTo(1:3,4);
+                
+                Sot = [eye(3) zeros(3); -skew(w_r_ot) eye(3)];
+                obj.wJo = Sot * obj.wJt;
             else
-        
+                % Se non abbiamo l'oggetto, wJo è uguale al tool
                 obj.wJo = obj.wJt; 
             end
         

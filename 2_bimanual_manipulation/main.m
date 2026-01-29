@@ -30,7 +30,8 @@ bm_sim=bimanual_sim(dt,arm1,arm2,end_time);
 
 %Define Object Shape and origin Frame
 obj_length = 0.10;
-w_obj_pos = [0.5 0 0.59]';
+%w_obj_pos = [0.5 0 0.59]';
+w_obj_pos = [1 0 0.1]';
 w_obj_ori = rotation(0,0,0);
 
 %Set goal frames for left and right arm, based on object frame
@@ -135,4 +136,5 @@ end
 action=2;
 tasks=[1,5,6];
 logger.plotAll(action,tasks);
+logger.plotQ4Analysis()
 end

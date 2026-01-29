@@ -41,7 +41,7 @@ arm2.setGoal(w_obj_pos, w_obj_ori, +arm_dist_offset, rotation(pi, -pi/9, pi));
 
     % Phase 2 Goal: Object Cooperative Goal
  %wTog = [rotation(0,0,0) [0.60, 0.40, 0.48]'; 0 0 0 1]; % Goal Esercizio 3
-wTog = [rotation(0,0,0) [0.85, 0, 0.07]'; 0 0 0 1]; % Goal Esercizio 3
+wTog = [rotation(0,0,0) [0.7, 0.4, 0.07]'; 0 0 0 1]; % Goal Esercizio 3
 
 arm1.set_obj_goal(wTog);
 arm2.set_obj_goal(wTog);
