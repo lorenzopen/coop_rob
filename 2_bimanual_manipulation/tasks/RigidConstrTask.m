@@ -31,7 +31,7 @@ classdef RigidConstrTask < Task
             % Jacobiano L proiettato sull'oggetto
             J_oL = X_L * robot_L.wJt;
 
-            % --- CALCOLO JACOBIANO DESTRO TRASPORTATO (J_oR) ---
+            
             % Distanza Tool R -> Oggetto
             r_R = robot_R.wTo(1:3, 4) - robot_R.wTt(1:3, 4);
             S_R = skew(r_R);
@@ -40,14 +40,12 @@ classdef RigidConstrTask < Task
             % Jacobiano R proiettato sull'oggetto
             J_oR = X_R * robot_R.wJt;
 
-            % --- COSTRUZIONE MATRICE DI VINCOLO (6x14) ---
-            % La differenza di velocità deve essere zero: V_L - V_R = 0
-            % Quindi la matrice è [J_oL, -J_oR]
+          
             obj.J = [J_oL, -J_oR];
         end
         
         function updateActivation(obj, robot_system)
-            % Sempre attivo
+           
             obj.A = eye(6);
         end
     end

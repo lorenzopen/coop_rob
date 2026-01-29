@@ -31,14 +31,14 @@ classdef ObjectTask < Task
             % 3. Calcolo velocità desiderata (Reference)
             obj.xdotbar = obj.gain * [v_ang; v_lin];
 
-            % 4. Saturazione (Safety)
-            % Saturiamo linearmente e angolarmente separatamente per stabilità
+            % 4. (Safety)
+         
             obj.xdotbar(1:3) = Saturate(obj.xdotbar(1:3), 0.3); % Rad/s
             obj.xdotbar(4:6) = Saturate(obj.xdotbar(4:6), 0.3); % m/s
         end
 
         function updateJacobian(obj, robot_system)
-            % 1. Selezione braccio e Jacobiano al Tool (wJt)
+            %  (wJt)
             if(obj.ID == 'L')
                 robot = robot_system.left_arm;
             elseif(obj.ID == 'R')
@@ -54,15 +54,13 @@ classdef ObjectTask < Task
             r_toc = robot.wTo(1:3, 4) - robot.wTt(1:3, 4);
 
             % Creiamo la matrice di trasporto delle velocità (6x6)
-            % [ I      0 ]
-            % [ -rx    I ]  (Nota: dipende dalla convenzione [ang; lin] o [lin; ang])
-            % Qui assumiamo xdot = [v_ang; v_lin] come nel riferimento sopra.
+ 
             
             % Matrice antisimmetrica del vettore r_toc
             S_r = skew(r_toc); 
             
             % Matrice di trasformazione per portare la velocità dal tool all'oggetto
-            % Se ruoto il polso, l'oggetto trasla -> termine S_r
+         
             wS_toc = [eye(3), zeros(3); 
                       -S_r,   eye(3)];
 
@@ -70,7 +68,7 @@ classdef ObjectTask < Task
             J_obj_local = wS_toc * J_tool;
 
             % 3. Costruzione Jacobiano Globale (La parte "System Compliant")
-            % Espandiamo a 6x14 per gestire l'intero robot (L+R)
+           
             if obj.ID == 'L'
                 % [ J_Left_Transformed,  Zeros_Right ]
                 obj.J = [J_obj_local, zeros(6, 7)];

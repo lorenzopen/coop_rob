@@ -14,7 +14,7 @@ classdef BimanualManipulatorManager < handle
 
         function updateMissionPhase(obj, actionManager, bm_sim)
             
-            switch obj.missionPhase
+             switch obj.missionPhase
                 
                 case 1 % --- STATO 1: GoToPosition (Reaching) ---
                     
@@ -79,7 +79,7 @@ classdef BimanualManipulatorManager < handle
                     end
 
                 case 3 % --- Stop Motion ---
-                  
-        end
+             end  
+        end 
     end
 end

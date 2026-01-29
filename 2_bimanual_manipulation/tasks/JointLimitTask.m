@@ -24,14 +24,12 @@ classdef JointLimitTask < Task
                 robot = robot_system;
             end
             
-            % Calcolo dell'errore rispetto ai limiti (vettoriale)
-            % err_min è positivo se il giunto scende sotto (jlmin + delta)
-            % err_max è positivo se il giunto sale sopra (jlmax - delta)
+            % err_min  (jlmin + delta)
+            % err_max  (jlmax - delta)
             err_min = (robot.jlmin + obj.delta) - robot.q;
             err_max = robot.q - (robot.jlmax - obj.delta);
 
-            % Calcoliamo la velocità di riferimento: spinge indietro solo se supera la soglia
-            % Se err < 0, il giunto è in zona sicura -> qdot = 0
+            % Se err < 0,  -> qdot = 0
             qdot_ref = obj.gain * (max(err_min, 0) - max(err_max, 0));
 
             % Saturazione della velocità richiesta
@@ -39,11 +37,10 @@ classdef JointLimitTask < Task
         end
 
         function updateJacobian(obj, robot_system)
-            % Supporta sia robot singoli (7 DOF) che dual-arm (14 DOF)
+            
             I7 = eye(7);
             if obj.ID == 'L'
-                % Se siamo il braccio sinistro, occupiamo le prime 7 colonne
-                % Assumiamo che il braccio destro abbia dimensione pari alle righe di q
+               
                 obj.J = [I7, zeros(7, size(robot_system.right_arm.q, 1))];
             elseif obj.ID == 'R'
                 % Se siamo il braccio destro, occupiamo le ultime 7 colonne

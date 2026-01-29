@@ -27,8 +27,7 @@ classdef StopTask < Task
             % Calcolo dell'errore (Desiderata [0] - Attuale)
             error = zeros(target_size, 1) - robot_qdot;
             
-            % Guadagno proporzionale per una frenata meno impulsiva
-            % Se vuoi un arresto istantaneo puro, usa obj.xdotbar = zeros(target_size, 1);
+           
             obj.xdotbar = 0.5 * error;
             
             % Limita le velocità richieste per sicurezza

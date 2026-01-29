@@ -1,6 +1,5 @@
 classdef ToolAltitudeLimit < Task
-    % Task ibrida: Mantiene l'altitudine minima del Tool.
-    % Include controlli di sicurezza sui dati in ingresso.
+ 
     
     properties
         z_min = 0.15;       % Limite inferiore altezza (m)
@@ -28,17 +27,14 @@ classdef ToolAltitudeLimit < Task
                 rob = sys.right_arm;
             end
 
-            % Lettura Altitudine Tool (Componente Z della posizione)
-            % wTt è 4x4, elemento (3,4) è la z.
             curr_alt = rob.wTt(3,4);
 
-            % Controllo difensivo sui dati (preso dal tuo esempio)
+            
             if isscalar(curr_alt)
                 % Calcolo errore: positivo se siamo sotto il limite (0.15 - 0.1 = 0.05)
                 err = obj.z_min - curr_alt;
                 
-                % Logica "Push Away": agiamo solo se l'errore è positivo
-                % Nota: gain positivo per spingere in alto (+Z)
+           
                 raw_vel = obj.gain * max(0, err);
                 
                 obj.xdotbar = raw_vel;
@@ -61,9 +57,7 @@ classdef ToolAltitudeLimit < Task
             % Jacobiano geometrico del tool (6x7)
             J_tool = rob.wJt;
 
-            % Vettore di selezione. 
-            % [0 0 1 0 0 0] seleziona la velocità LINEARE Z (altitudine).
-            % [0 0 0 0 0 1] selezionerebbe la rotazione (sbagliato per l'altitudine).
+           
             select_vec = [0 0 1 0 0 0];
 
             % Proiezione del Jacobiano sulla sola riga Z
@@ -86,9 +80,7 @@ classdef ToolAltitudeLimit < Task
 
             curr_alt = rob.wTt(3,4);
 
-            % Attivazione soft:
-            % 1 (piena attivazione) se siamo sotto z_min (0.15)
-            % 0 (disattivato) se siamo sopra z_min + buffer (0.20)
+
             if isscalar(curr_alt)
                 obj.A = DecreasingBellShapedFunction(obj.z_min, ...
                                                      obj.z_min + obj.z_buff, ...
