@@ -58,7 +58,7 @@ classdef ToolAltitudeLimit < Task
             J_tool = rob.wJt;
 
            
-            select_vec = [0 0 1 0 0 0];
+            select_vec = [0 0 0 0 0 1];
 
             % Proiezione del Jacobiano sulla sola riga Z
             J_z = select_vec * J_tool;
