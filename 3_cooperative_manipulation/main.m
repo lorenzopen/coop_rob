@@ -9,7 +9,7 @@ addpath('./tasks')
 clc;clear;close all; 
 %Simulation Parameters
 dt = 0.005;
-end_time = 13;
+end_time = 20;
 
 % Initialize Franka Emika Panda Model
 model = load("panda.mat");
@@ -60,6 +60,30 @@ arm2.set_obj_goal(wTog);
     jl_L = JointLimitTask("L", "JL_L");
     jl_R = JointLimitTask("R", "JL_R");
     
+    % --- NUOVO: Task Sinusoidale per la Fase 2 ---
+    amp = 0.06;    % Oscilla di +- 10 cm
+    freq = 1.5;    % Frequenza rad/s
+    tilt_angle = 20 * (pi/180); % Inclinazione di 20 gradi
+    R_tilt = rotation(0, tilt_angle, 0);
+    
+   % Estraiamo la posizione (X,Y,Z) dal goal wTog
+    goal_pos = wTog(1:3, 4);
+ 
+    % Centriamo la sinusoide attorno al nuovo Goal (wTog)
+    pos_L = goal_pos - arm_dist_offset; 
+    %pos_L(3) = 0.35; % Braccio L in alto a 0.35
+    wTg_base_L = eye(4);
+    wTg_base_L(1:3, 1:3) = R_tilt * rotation(pi, -pi/9, 0);
+    wTg_base_L(1:3, 4) = pos_L;
+    pos_R = goal_pos + arm_dist_offset; 
+    %pos_R(3) = 0.20; % Braccio R in basso a 0.20
+    wTg_base_R = eye(4);
+    wTg_base_R(1:3, 1:3) = R_tilt * rotation(pi, -pi/9, pi);
+    wTg_base_R(1:3, 4) = pos_R;
+
+    sine_task_L = TaskSinusoidalTracking(1, "SINE_L", wTg_base_L, amp, freq);
+    sine_task_R = TaskSinusoidalTracking(2, "SINE_R", wTg_base_R, amp, freq);
+
     % 3. Phase 2 Tasks: Object Motion (Non-Cooperative computation)
     object_task_L = ObjectTask("L", "OBJ_MOT_L");
     object_task_R = ObjectTask("R", "OBJ_MOT_R");
@@ -78,10 +102,14 @@ arm2.set_obj_goal(wTog);
     go_to_left  = {ee_alt_L, jl_L, left_tool_task};
     go_to_right = {ee_alt_R, jl_R, right_tool_task};
 
-    % Action 2 (Computation): Compute Non-Cooperative Object Velocity
-    % Qui usiamo ObjectTask per calcolare cosa vorrebbe fare il robot se fosse solo
-    coop_manipulation_L = {ee_alt_L, jl_L, object_task_L};
-    coop_manipulation_R = {ee_alt_R, jl_R, object_task_R};
+    % % Action 2 (Computation): Compute Non-Cooperative Object Velocity
+    % % Qui usiamo ObjectTask per calcolare cosa vorrebbe fare il robot se fosse solo
+    % coop_manipulation_L = {ee_alt_L, jl_L, object_task_L};
+    % coop_manipulation_R = {ee_alt_R, jl_R, object_task_R};
+
+    % NUOVO Action 2: (Sostituito ObjectTask con SinusoidalTask)   
+    sine_manipulation_L = {ee_alt_L, jl_L, sine_task_L};     
+    sine_manipulation_R = {ee_alt_R, jl_R, sine_task_R};
 
     % Action 3 (Execution): Stop
     stop_motion_L = {ee_alt_L, stop_task_L};
@@ -90,25 +118,29 @@ arm2.set_obj_goal(wTog);
     % --- ACTION MANAGERS (NON-COOPERATIVE / COMPUTATION) ---
     actionManagerL = ActionManager();
     actionManagerL.addAction(go_to_left, "Go To Left");
-    actionManagerL.addAction(coop_manipulation_L, "Coop Calc Left");
+    %actionManagerL.addAction(coop_manipulation_L, "Coop Calc Left");
+    actionManagerL.addAction(sine_manipulation_L, "Sine Tracking Left");
     actionManagerL.addAction(stop_motion_L, "Stop Left");
 
     actionManagerR = ActionManager();
     actionManagerR.addAction(go_to_right, "Go To Right");
-    actionManagerR.addAction(coop_manipulation_R, "Coop Calc Right");
+    %actionManagerR.addAction(coop_manipulation_R, "Coop Calc Right");
+    actionManagerR.addAction(sine_manipulation_R, "Sine Tracking Right");
     actionManagerR.addAction(stop_motion_R, "Stop Right");
 
-    unifiedTasksL = {ee_alt_L, jl_L, left_tool_task, object_task_L, stop_task_L};
+    %unifiedTasksL = {ee_alt_L, jl_L, left_tool_task, object_task_L, stop_task_L};
+    unifiedTasksL = {ee_alt_L, jl_L, left_tool_task, sine_task_L, stop_task_L};
     actionManagerL.addUnifyingTaskList(unifiedTasksL);
 
-    unifiedTasksR = {ee_alt_R, jl_R, right_tool_task, object_task_R, stop_task_R};
+    %unifiedTasksR = {ee_alt_R, jl_R, right_tool_task, object_task_R, stop_task_R};
+    unifiedTasksR = {ee_alt_R, jl_R, right_tool_task, sine_task_R, stop_task_R};
     actionManagerR.addUnifyingTaskList(unifiedTasksR);
 
     % --- ACTION MANAGERS (COOPERATIVE EXECUTION) ---
     % Priority: 1. Cooperative Constraint (Motion) 2. Safety
     
     actionManagerL_coop = ActionManager();
-    actionManagerL_coop.addAction({coop_task_L, ee_alt_L, jl_L}, "Coop Exec Left");
+    actionManagerL_coop.addAction({coop_task_L, ee_alt_L, jl_L }, "Coop Exec Left");
     actionManagerL_coop.addUnifyingTaskList({coop_task_L, ee_alt_L, jl_L});
 
     actionManagerR_coop = ActionManager();
@@ -194,7 +226,7 @@ logger = SimulationLogger(ceil(end_time/dt)+1, coop_system, unifiedTasksL, unifi
             % 3. Calcolo dei Pesi (Mu)
             % Recuperiamo il riferimento ideale (v_des) dai task o ricalcoliamolo
             % Qui prendiamo quello del task L come riferimento globale dell'oggetto
-            xdot_ref = object_task_L.xdotbar; 
+            xdot_ref = sine_task_L.xdotbar; 
             
             mu0 = 0.05; % Piccolo bias
             mu_l = mu0 + norm(xdot_ref - xdot_l);

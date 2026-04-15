@@ -1,7 +1,7 @@
 classdef MissionManager < handle
     properties
         % Soglie di tolleranza
-        pos_threshold = 0.01;   % 1 cm di errore
+        pos_threshold = 0.02;   % 1 cm di errore
         ang_threshold = 0.1;    % ~5.7 gradi
         
         missionPhase = 1;       % Fase corrente della missione
@@ -59,29 +59,30 @@ classdef MissionManager < handle
                         mgrL.setBinaryTransition(true); 
                         mgrR.setBinaryTransition(true);
                         
-                        mgrL.setCurrentAction("Coop Calc Left");
-                        mgrR.setCurrentAction("Coop Calc Right");
+                        mgrL.setCurrentAction("Sine Tracking Left");
+                        mgrR.setCurrentAction("Sine Tracking Right");
                         
                         obj.missionPhase = 2;
                     end
 
-                case 2 % --- PHASE 2: COOPERATIVE MANIPULATION ---
+                case 2 % --- PHASE 2: COOPERATIVE SINE TRACKING ---
                     
-                    
-                    % Calcolo errore cartesiano corrente dell'oggetto (Left arm come riferimento master)
+                    % 1. Calcoliamo l'errore tra l'oggetto e il goal finale (wTog)
                     [err_ang, err_lin] = CartError(coop_system.left_arm.wTog, coop_system.left_arm.wTo);
                     
-                    dist_lin = norm(err_lin);
-                    dist_ang = norm(err_ang);
+                    % 2. Guardiamo SOLO la distanza sul piano (X, Y) ignorando la Z
+                    dist_lin_xy = norm(err_lin(1:2)); 
                     
-                    % TRANSIZIONE -> FASE 3 (STOP)
-                    if dist_lin < obj.pos_threshold && dist_ang < obj.ang_threshold
-                        fprintf('\n[MissionManager] Object Goal Reached. Stopping Motion.\n');
+                    % 3. TRANSIZIONE -> FASE 3 (STOP)
+                    % Se siamo arrivati sopra al punto X-Y desiderato, fermiamo la sinusoide
+                    if dist_lin_xy < obj.pos_threshold
+                        fprintf('\n[MissionManager] Goal raggiunto. Fermo l''oscillazione.\n');
                         
-                        % Switch Action Managers all'azione di Stop
-                        mgrL.setBinaryTransition(false); % Soft stop
+                        % Passiamo allo stop morbido
+                        mgrL.setBinaryTransition(false); 
                         mgrR.setBinaryTransition(false);
                         
+                        % Cambiamo l'azione in "Stop"
                         mgrL.setCurrentAction("Stop Left");
                         mgrR.setCurrentAction("Stop Right");
                         
