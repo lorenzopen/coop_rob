@@ -1,8 +1,8 @@
 classdef TaskProximityBoundary < Task
     properties
         % Definiamo i margini operativi sicuri per il braccio
-        R_min = 0.8; % Distanza minima dal target (troppo vicino)
-        R_max = 1.3; % Distanza massima dal target (troppo lontano)
+        R_min = 1.5; % Distanza minima dal target (troppo vicino)
+        R_max = 1.5; % Distanza massima dal target (troppo lontano)
     end
 
     methods
