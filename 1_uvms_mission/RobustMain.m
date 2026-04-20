@@ -20,7 +20,7 @@ unity = UnityInterface("127.0.0.1");
 %Define desired positions and orientations (world frame)
 w_arm_goal_position = [12.2025, 37.3748, -39.8860]'; % nodule position
 w_arm_goal_orientation = [0, pi, pi/2];
-w_vehicle_goal_position = [10.5 37.5 -38]';
+w_vehicle_goal_position = [9.2025, 37.748, -38]';
 w_vehicle_goal_orientation = [0, -0.06, 0.5];
 
 % Define tasks
@@ -65,6 +65,7 @@ missionPhase = 1;
 manFlag = false; % manipulation complete flag for logging
 goalReset = false;
 
+rmin = 1.5; % set larger value to prevent vehicle from getting too close to the target
 rmax = 1.5; % set smaller value to force vehicle repositioning
 
 % Main simulation loop
@@ -97,13 +98,18 @@ for step = 1:sim.maxSteps
         % Se siamo atterrati e allineati
         %if task_land.error < 0.1
             % Caso A: Nodulo troppo lontano (fuori workspace)
-             if dist_target > rmax && ~goalReset
+             if (dist_target > rmax || dist_target < rmin) && ~goalReset
                  goalReset = true;
-                 fprintf('Adjusting vehicle goal to guarantee nodule reachability (dist=%.2f)\n', dist_target);
-              
                  
-                 % 1. (Distanza in eccesso)
-                 excess_dist = dist_target - rmax; 
+                 if dist_target > rmax
+                    fprintf('Adjusting vehicle goal (Too FAR: dist=%.2f, max=%.2f)\n', dist_target, rmax);
+                    % Distanza da recuperare in avanti (valore positivo)
+                    excess_dist = dist_target - rmax; 
+                else
+                    fprintf('Adjusting vehicle goal (Too CLOSE: dist=%.2f, min=%.2f)\n', dist_target, rmin);
+                    % Distanza da recuperare all'indietro (valore negativo!)
+                    excess_dist = dist_target - rmin; 
+                end
                     
                 % 2.(Versore unitario)
                  u_dir = vec_to_target / dist_target;
