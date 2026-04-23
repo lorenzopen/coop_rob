@@ -20,7 +20,7 @@ unity = UnityInterface("127.0.0.1");
 %Define desired positions and orientations (world frame)
 w_arm_goal_position = [12.2025, 37.3748, -39.8860]'; % nodule position
 w_arm_goal_orientation = [0, pi, pi/2];
-w_vehicle_goal_position = [9.2025, 37.748, -38]';
+w_vehicle_goal_position = [10.5, 37.5, -38]';
 w_vehicle_goal_orientation = [0, -0.06, 0.5];
 
 % Define tasks
@@ -40,8 +40,7 @@ task_landing_set = { task_horizontal, task_heading, task_land, task_position, ta
 task_manipulation_set = { task_stop, task_tool };                                % Manipulation
 
 % Unifying task list
-unified_task_list = {task_altitude, task_stop, task_horizontal, task_heading, task_land, task_orientation,task_position, task_reachability, task_tool };
-
+unified_task_list = {task_altitude, task_stop, task_horizontal, task_land, task_position, task_reachability, task_heading, task_orientation, task_tool };
 IDX_NAV   = 1;
 IDX_LAND  = 2;
 IDX_MANIP = 3;
@@ -98,32 +97,26 @@ for step = 1:sim.maxSteps
         % Se siamo atterrati e allineati
         %if task_land.error < 0.1
             % Caso A: Nodulo troppo lontano (fuori workspace)
+             % Caso A: Nodulo troppo lontano o troppo vicino (fuori workspace)
              if (dist_target > rmax || dist_target < rmin) && ~goalReset
                  goalReset = true;
                  
+                 % Versore unitario dal veicolo verso il target
+                 u_dir = vec_to_target / dist_target;
+                 
                  if dist_target > rmax
                     fprintf('Adjusting vehicle goal (Too FAR: dist=%.2f, max=%.2f)\n', dist_target, rmax);
-                    % Distanza da recuperare in avanti (valore positivo)
-                    excess_dist = dist_target - rmax; 
+                    % Il nuovo goal è esattamente a rmax dal target, arretrando lungo la linea di vista
+                    w_vehicle_goal_position(1:2) = w_arm_goal_pos_2d - u_dir * rmax;
                 else
                     fprintf('Adjusting vehicle goal (Too CLOSE: dist=%.2f, min=%.2f)\n', dist_target, rmin);
-                    % Distanza da recuperare all'indietro (valore negativo!)
-                    excess_dist = dist_target - rmin; 
+                    % Il nuovo goal è esattamente a rmin dal target, arretrando lungo la linea di vista
+                    w_vehicle_goal_position(1:2) = w_arm_goal_pos_2d - u_dir * rmin;
                 end
-                    
-                % 2.(Versore unitario)
-                 u_dir = vec_to_target / dist_target;
 
-                 % 3. Calcoliamo il vettore correzione
-                
-                correction = u_dir * excess_dist;
-
-                 % Aggiorniamo il goal del veicolo
-                 w_vehicle_goal_position(1:2) = w_vehicle_goal_position(1:2) + correction;
-                 % Inviamo il nuovo goal al robot
+                 % Inviamo il nuovo goal esatto al robot
                  robotModel.setGoal(w_arm_goal_position, w_arm_goal_orientation, ...
                                     w_vehicle_goal_position, w_vehicle_goal_orientation);
-            % % Caso B: Nodulo raggiungibile e veicolo posizionato
              
             elseif ((task_position.error < 0.2) & (task_land.error < 0.1))
                  disp("Landing complete & Reachable - switch to Manipulation");

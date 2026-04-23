@@ -35,7 +35,11 @@ classdef TaskAltitude < Task
  
             %total jacobian, first we normalize to obtain only the linear
             %part on the z-axis
-            n = [0 0 1];
+            % vRw = robot.vTw(1:3, 1:3);        
+            % n = vRw * [0; 0; 1];  
+            % obj.J = n' * [J_arm , J_vehicle]; %1x3 * 3x13  = 1x13
+
+             n = [0 0 1];
             obj.J = n * [J_arm , J_vehicle]; %1x3 * 3x13  = 1x13
  
         end
